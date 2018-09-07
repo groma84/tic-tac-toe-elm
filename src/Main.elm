@@ -4,7 +4,6 @@ import Html exposing (Html, div, h1, h2, img, text)
 import Html.Events exposing (onClick)
 
 
-
 -- TODO
 -- Die verschiedenen TODO Stellen umsetzen
 -- Feld-Rendering
@@ -82,8 +81,32 @@ type Msg
 
 hatGewonnen : Model -> Bool
 hatGewonnen model =
-    -- TODO
-    False
+    let
+        pruefeSieg gesuchtesSymbol felder =
+            let
+                feldIstSymbol symbol feld =
+                    case Tuple.second feld of
+                        Nothing ->
+                            False
+
+                        Just s ->
+                            s == symbol
+            in
+                List.all (feldIstSymbol gesuchtesSymbol) felder
+
+        moeglicheSiegReihen =
+            [ [ model.feldLinksOben, model.feldMitteOben, model.feldRechtsOben ]
+            , [ model.feldLinksMittig, model.feldMitteMittig, model.feldRechtsMittig ]
+            , [ model.feldLinksUnten, model.feldMitteUnten, model.feldRechtsUnten ]
+            , [ model.feldLinksOben, model.feldLinksMittig, model.feldLinksUnten ]
+            , [ model.feldMitteOben, model.feldMitteMittig, model.feldMitteUnten ]
+            , [ model.feldRechtsOben, model.feldRechtsMittig, model.feldRechtsUnten ]
+            , [ model.feldLinksOben, model.feldMitteMittig, model.feldRechtsUnten ]
+            , [ model.feldRechtsOben, model.feldMitteMittig, model.feldLinksUnten ]
+            ]
+    in
+        List.map (pruefeSieg model.spielerAmZug) moeglicheSiegReihen
+            |> List.any (\gewonnen -> gewonnen == True)
 
 
 flipSpielerAmZug : { a | spielerAmZug : Spieler } -> { a | spielerAmZug : Spieler }
@@ -97,12 +120,12 @@ flipSpielerAmZug ms =
                 O ->
                     X
     in
-    { ms | spielerAmZug = neuerSpielerAmZug }
+        { ms | spielerAmZug = neuerSpielerAmZug }
 
 
-spielerHatGewonnen : { a | gewinner : Maybe Spieler } -> Maybe Spieler -> { a | gewinner : Maybe Spieler }
-spielerHatGewonnen ms spieler =
-    { ms | gewinner = spieler }
+spielerHatGewonnen : { a | gewinner : Maybe Spieler } -> Spieler -> { a | gewinner : Maybe Spieler }
+spielerHatGewonnen model spieler =
+    { model | gewinner = Just spieler }
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -112,7 +135,6 @@ update msg model =
             ( model, Cmd.none )
 
         FeldGeklickt pos symbol ->
-            -- TODO: Auch wenn ein schon geklicktes Feld geklickt wird, schaltet der nächste Spieler um - das darf nicht sein.
             let
                 newModel =
                     case symbol of
@@ -120,43 +142,44 @@ update msg model =
                             model
 
                         Nothing ->
-                            case pos of
-                                LinksOben ->
-                                    { model | feldLinksOben = ( LinksOben, Just model.spielerAmZug ) }
+                            let
+                                gezogen =
+                                    case pos of
+                                        LinksOben ->
+                                            { model | feldLinksOben = ( LinksOben, Just model.spielerAmZug ) }
 
-                                MitteOben ->
-                                    { model | feldMitteOben = ( MitteOben, Just model.spielerAmZug ) }
+                                        MitteOben ->
+                                            { model | feldMitteOben = ( MitteOben, Just model.spielerAmZug ) }
 
-                                RechtsOben ->
-                                    { model | feldRechtsOben = ( RechtsOben, Just model.spielerAmZug ) }
+                                        RechtsOben ->
+                                            { model | feldRechtsOben = ( RechtsOben, Just model.spielerAmZug ) }
 
-                                LinksMittig ->
-                                    { model | feldLinksMittig = ( LinksMittig, Just model.spielerAmZug ) }
+                                        LinksMittig ->
+                                            { model | feldLinksMittig = ( LinksMittig, Just model.spielerAmZug ) }
 
-                                MitteMittig ->
-                                    { model | feldMitteMittig = ( MitteMittig, Just model.spielerAmZug ) }
+                                        MitteMittig ->
+                                            { model | feldMitteMittig = ( MitteMittig, Just model.spielerAmZug ) }
 
-                                RechtsMittig ->
-                                    { model | feldRechtsMittig = ( RechtsMittig, Just model.spielerAmZug ) }
+                                        RechtsMittig ->
+                                            { model | feldRechtsMittig = ( RechtsMittig, Just model.spielerAmZug ) }
 
-                                LinksUnten ->
-                                    { model | feldLinksUnten = ( LinksUnten, Just model.spielerAmZug ) }
+                                        LinksUnten ->
+                                            { model | feldLinksUnten = ( LinksUnten, Just model.spielerAmZug ) }
 
-                                MitteUnten ->
-                                    { model | feldMitteUnten = ( MitteUnten, Just model.spielerAmZug ) }
+                                        MitteUnten ->
+                                            { model | feldMitteUnten = ( MitteUnten, Just model.spielerAmZug ) }
 
-                                RechtsUnten ->
-                                    { model | feldRechtsUnten = ( RechtsUnten, Just model.spielerAmZug ) }
+                                        RechtsUnten ->
+                                            { model | feldRechtsUnten = ( RechtsUnten, Just model.spielerAmZug ) }
+                            in
+                                case hatGewonnen gezogen of
+                                    False ->
+                                        flipSpielerAmZug gezogen
 
-                nachZug =
-                    case hatGewonnen newModel of
-                        False ->
-                            flipSpielerAmZug newModel
-
-                        True ->
-                            spielerHatGewonnen newModel symbol
+                                    True ->
+                                        spielerHatGewonnen gezogen model.spielerAmZug
             in
-            ( nachZug, Cmd.none )
+                ( newModel, Cmd.none )
 
 
 
@@ -195,7 +218,7 @@ zeichneSpielfeld model =
                 ( pos, symbol ) =
                     feld
             in
-            div [ onClick (FeldGeklickt pos symbol) ] [ text txt ]
+                div [ onClick (FeldGeklickt pos symbol) ] [ text txt ]
 
         einFeld feld =
             let
@@ -231,9 +254,14 @@ zeichneSpielfeld model =
                         RechtsUnten ->
                             "RechtsUnten"
             in
-            einDiv feld txt
+                einDiv feld txt
     in
-    div [] (getFelder model |> List.map einFeld)
+        case model.gewinner of
+            Nothing ->
+                div [] (getFelder model |> List.map einFeld)
+
+            Just sieger ->
+                div [] [ text "Einer hat gewonnen" ]
 
 
 view : Model -> Html Msg
