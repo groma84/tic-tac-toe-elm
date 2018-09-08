@@ -1,14 +1,10 @@
 module Main exposing (Model, Msg(..), Position(..), Spieler, Symbol(..), init, main, update, view)
 
-import Html exposing (Html, div, h1, h2, img, text)
+import Html exposing (Html, div, h1, h2, text, button)
+import Html.Attributes exposing (class, classList, type_)
 import Html.Events exposing (onClick)
 
 
--- TODO
--- Die verschiedenen TODO Stellen umsetzen
--- Feld-Rendering
--- Spielzustand: Im Spiel | Spieler hat gewonnen (Restart)
--- Mouseover Effekte bei Feldern
 ---- MODEL ----
 
 
@@ -77,6 +73,22 @@ init =
 type Msg
     = NoOp
     | FeldGeklickt Position (Maybe Symbol)
+    | NeuesSpiel
+
+
+symbolToString : Maybe Symbol -> String
+symbolToString symbol =
+    case symbol of
+        Nothing ->
+            ""
+
+        Just s ->
+            case s of
+                X ->
+                    "X"
+
+                O ->
+                    "O"
 
 
 hatGewonnen : Model -> Bool
@@ -172,28 +184,19 @@ update msg model =
                                         RechtsUnten ->
                                             { model | feldRechtsUnten = ( RechtsUnten, Just model.spielerAmZug ) }
                             in
-                                case hatGewonnen gezogen of
-                                    False ->
-                                        flipSpielerAmZug gezogen
-
-                                    True ->
-                                        spielerHatGewonnen gezogen model.spielerAmZug
+                                if hatGewonnen gezogen then
+                                    flipSpielerAmZug gezogen
+                                else
+                                    spielerHatGewonnen gezogen model.spielerAmZug
             in
                 ( newModel, Cmd.none )
+
+        NeuesSpiel ->
+            init
 
 
 
 ---- VIEW ----
-
-
-symbolToString : Symbol -> String
-symbolToString symbol =
-    case symbol of
-        X ->
-            "X"
-
-        O ->
-            "O"
 
 
 getFelder : Model -> List Feld
@@ -217,58 +220,75 @@ zeichneSpielfeld model =
             let
                 ( pos, symbol ) =
                     feld
+
+                cssClass =
+                    case pos of
+                        LinksOben ->
+                            "feld_links_oben"
+
+                        MitteOben ->
+                            "feld_mitte_oben"
+
+                        RechtsOben ->
+                            "feld_rechts_oben"
+
+                        LinksMittig ->
+                            "feld_links_mittig"
+
+                        MitteMittig ->
+                            "feld_mitte_mittig"
+
+                        RechtsMittig ->
+                            "feld_rechts_mittig"
+
+                        LinksUnten ->
+                            "feld_links_unten"
+
+                        MitteUnten ->
+                            "feld_mitte_unten"
+
+                        RechtsUnten ->
+                            "feld_rechts_unten"
             in
-                div [ onClick (FeldGeklickt pos symbol) ] [ text txt ]
+                div [ onClick (FeldGeklickt pos symbol) ]
+                    [ div
+                        [ classList
+                            [ ( cssClass, True )
+                            , ( "feld", True )
+                            , ( "x", symbol == Just X )
+                            , ( "o", symbol == Just O )
+                            ]
+                        ]
+                        [ text txt
+                        ]
+                    ]
 
         einFeld feld =
             let
-                position =
-                    Tuple.first feld
-
-                txt =
-                    case position of
-                        LinksOben ->
-                            "LinksOben"
-
-                        MitteOben ->
-                            "MitteOben"
-
-                        RechtsOben ->
-                            "RechtsOben"
-
-                        LinksMittig ->
-                            "LinksMittig"
-
-                        MitteMittig ->
-                            "MitteMittig"
-
-                        RechtsMittig ->
-                            "RechtsMittig"
-
-                        LinksUnten ->
-                            "LinksUnten"
-
-                        MitteUnten ->
-                            "MitteUnten"
-
-                        RechtsUnten ->
-                            "RechtsUnten"
+                symbol =
+                    Tuple.second feld
             in
-                einDiv feld txt
+                einDiv feld (symbolToString symbol)
     in
         case model.gewinner of
             Nothing ->
-                div [] (getFelder model |> List.map einFeld)
+                div []
+                    [ div [ class "spielfeld" ] (getFelder model |> List.map einFeld)
+                    , button [ class "spielende_button", type_ "button", onClick NeuesSpiel ] [ text "Neues Spiel" ]
+                    ]
 
             Just sieger ->
-                div [] [ text "Einer hat gewonnen" ]
+                div []
+                    [ div [ class "spielende_text" ] [ text ("Spieler " ++ (sieger |> Just |> symbolToString) ++ " hat gewonnen") ]
+                    , button [ class "spielende_button", type_ "button", onClick NeuesSpiel ] [ text "Neues Spiel" ]
+                    ]
 
 
 view : Model -> Html Msg
 view model =
     div []
         [ h1 [] [ text "Tic Tac Toe" ]
-        , h2 [] [ text ("Spieler am Zug: " ++ symbolToString model.spielerAmZug) ]
+        , h2 [] [ text ("Spieler am Zug: " ++ (model.spielerAmZug |> Just |> symbolToString)) ]
         , zeichneSpielfeld model
         ]
 

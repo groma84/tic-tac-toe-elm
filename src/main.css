@@ -1,6 +1,5 @@
 body {
-  font-family: 'Source Sans Pro', 'Trebuchet MS', 'Lucida Grande', 'Bitstream Vera Sans', 'Helvetica Neue', sans-serif;
-  margin: 0;
+  font-family: monospace;
   text-align: center;
   color: #293c4b;
 }
@@ -9,7 +8,74 @@ h1 {
   font-size: 30px;
 }
 
-img {
-  margin: 20px 0;
-  max-width: 200px;
+.spielfeld {
+   margin: auto;
+
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  grid-template-rows: repeat(3, auto);
+
+  width: 100%;
+  height: 100%;
+  max-width: 480px;
+  max-height: 480px;
+}
+
+.feld {
+  width: 160px;
+  height: 160px;
+
+  font-family: monospace;
+  font-size: 72px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.feld_links_oben,
+.feld_mitte_oben,
+.feld_links_mittig,
+.feld_mitte_mittig
+ {
+  border-right: 1px solid black;
+  border-bottom: 1px solid black;
+}
+
+.feld_rechts_oben,
+.feld_rechts_mittig {
+  border-bottom: 1px solid black;
+}
+
+.feld_links_unten,
+.feld_mitte_unten {
+  border-right: 1px solid black;
+}
+
+.x {
+  color: palevioletred;
+}
+
+.o  {
+  color: goldenrod;
+}
+
+.spielende_text {
+  font-size: 30px;
+  font-weight: bold;  
+}
+
+.spielende_button {
+  font-size: 30px;
+  margin-top: 30px;
+  padding: 15px;
+  background-color: whitesmoke;
+  border: 1px solid black;
+  color: #293c4b;
+  border-radius: 52px;
+}
+
+.spielende_button:hover {
+  background-color: lightskyblue;
+  cursor: pointer;
 }
