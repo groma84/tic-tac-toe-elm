@@ -10,6 +10,7 @@ h1 {
 
 .spielfeld {
    margin: auto;
+   user-select: none;
 
   display: grid;
   grid-template-columns: repeat(3, auto);
