@@ -185,9 +185,9 @@ update msg model =
                                             { model | feldRechtsUnten = ( RechtsUnten, Just model.spielerAmZug ) }
                             in
                                 if hatGewonnen gezogen then
-                                    flipSpielerAmZug gezogen
-                                else
                                     spielerHatGewonnen gezogen model.spielerAmZug
+                                else
+                                    flipSpielerAmZug gezogen
             in
                 ( newModel, Cmd.none )
 
