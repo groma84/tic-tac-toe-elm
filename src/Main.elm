@@ -17,6 +17,9 @@ type alias Spieler =
     Symbol
 
 
+-- Bessere Ideen:
+-- Aufteilen in zwei Positionen:Links Mitte Rechts, Oben Mittig Unten
+
 type Position
     = LinksOben
     | MitteOben
@@ -106,6 +109,8 @@ hatGewonnen model =
             in
                 List.all (feldIstSymbol gesuchtesSymbol) felder
 
+        -- Ideen: Kann man die SIEGMATRIX auch generieren? zumindest dann, wenn man die Feldertypem
+        --          aufteilt  in vertikale und horizontale
         moeglicheSiegReihen =
             [ [ model.feldLinksOben, model.feldMitteOben, model.feldRechtsOben ]
             , [ model.feldLinksMittig, model.feldMitteMittig, model.feldRechtsMittig ]
